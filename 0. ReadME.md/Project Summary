@@ -1,0 +1,10 @@
+This project presents a end-to-end data analytics solution for Bright Coffee Shop,
+developed as part of a Junior Data Analyst assessment. The objective is to analyze 
+daily transactional sales data and deliver actionable insights to support the CEO 
+in making informed business decisions around revenue growth and product performance.
+
+Objectives
+- Identify which products generate the most revenue
+- Determine peak sales time intervals throughout the day
+- Analyze sales trends across products and time buckets
+- Provide data-driven recommendations to improve sales performance
