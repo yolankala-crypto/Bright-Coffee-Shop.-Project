@@ -47,6 +47,13 @@ FROM workspace.default.BrightCoffeeShop_analysis_case_study_1;
 SELECT MAX(unit_price) As expensive_price
 FROM workspace.default.BrightCoffeeShop_analysis_case_study_1;
 
+-------------------------------------------------------------
+SELECT COUNT(*) AS number_of_rows,
+       COUNT(DISTINCT transaction_id) AS number_of_sales,
+       COUNT(DISTINCT product_id) AS number_of_products,
+       COUNT(DISTINCT store_id) AS number_of_stores
+FROM workspace.default.brightcoffeeshop_analysis_case_study_1;
+
 -- 5. Extructing Day and Month names
 SELECT Dayname (transaction_date) AS Day_name,
        Monthname(transaction_date) AS Month_name
@@ -59,11 +66,32 @@ WHERE unit_price IS NULL
 OR transaction_qty IS NULL
 OR transaction_date IS NULL;
 
--- 7. Revenue
-SELECT unit_price,
-       transaction_qty,
-       unit_price*transaction_qty AS Revenue
+SELECT transaction_date,
+       Dayname (transaction_date) AS Day_name,
+       Monthname(transaction_date) AS Month_name
 FROM workspace.default.brightcoffeeshop_analysis_case_study_1;
+
+-- 7. Revenue per transaction
+SELECT transaction_date,
+       Dayname (transaction_date) AS Day_name,
+       Monthname(transaction_date) AS Month_name,   
+       unit_price*transaction_qty AS Revenue_per_transaction
+FROM workspace.default.brightcoffeeshop_analysis_case_study_1;
+
+SELECT COUNT(*)
+FROM workspace.default.brightcoffeeshop_analysis_case_study_1;
+
+-- How many sales were generated that day? 550 sale
+-- How much was made from generating 550 sates? 2508.2000000000007 revenue per transaction
+SELECT transaction_date,
+       Dayname (transaction_date) AS Day_name,
+       Monthname(transaction_date) AS Month_name, 
+       COUNT(DISTINCT transaction_id) AS number_of_sales,
+       SUM(unit_price*transaction_qty) AS Revenue_per_tnx
+FROM workspace.default.brightcoffeeshop_analysis_case_study_1
+GROUP BY transaction_date,
+         Day_name,
+         Month_name;
 
 -- Count number of rows
 SELECT 
@@ -79,12 +107,36 @@ SELECT transaction_id,
       Monthname(transaction_date) AS Month_name,
       transaction_qty*unit_price AS revenue_per_tnx
 FROM workspace.default.BrightCoffeeShop_analysis_case_study_1;
+
+
+SELECT  
+--Date 
+       transaction_date,
+        Dayname(transaction_date) AS Day_name,
+        Monthname(transaction_date) AS Month_name,
+
+--Counts
+         COUNT(DISTINCT transaction_id) AS number_of_sales,
+         COUNT(DISTINCT product_id) AS number_of_products,
+         COUNT(DISTINCT store_id) AS number_of_stores,
+-- Revenue
+         SUM(unit_price*transaction_qty) AS Revenue_per_day
+FROM workspace.default.brightcoffeeshop_analysis_case_study_1
+GROUP BY transaction_date,
+         store_location,
+          product_category,
+          product_detail,
+          Day_name,
+          Month_name;
+
 -----------------------------------------------------
 SELECT COUNT(*)
 FROM workspace.default.BrightCoffeeShop_analysis_case_study_1;
 ---------------------------------------------------------------
+
+
 SELECT
-    -- Dates
+ -- Dates
     transaction_date AS purchase_date,
     DAYNAME(transaction_date) AS day_name,
     MONTHNAME(transaction_date) AS month_name,
@@ -94,42 +146,52 @@ SELECT
         ELSE 'Weekday'
     END AS day_classification,
 
-    -- Time Bucket
+-- Time bucket
     CASE
         WHEN DATE_FORMAT(transaction_time, 'HH:mm:ss') BETWEEN '00:00:00' AND '11:59:59' THEN 'Morning'
         WHEN DATE_FORMAT(transaction_time, 'HH:mm:ss') BETWEEN '12:00:00' AND '16:59:59' THEN 'Afternoon'
         WHEN DATE_FORMAT(transaction_time, 'HH:mm:ss') >= '17:00:00' THEN 'Evening'
     END AS time_bucket,
 
-    -- Count of IDs
+ -- Count of IDs
     COUNT(DISTINCT transaction_id) AS number_of_sales,
-    COUNT(DISTINCT product_id) AS number_of_products,
-    COUNT(DISTINCT store_id) AS number_of_stores,
+    COUNT(DISTINCT product_id)     AS number_of_products,
+    COUNT(DISTINCT store_id)       AS number_of_stores,
 
-    -- Revenue
+ -- Revenue
     SUM(transaction_qty * unit_price) AS revenue_per_day,
 
-    -- Categorical Columns
+ -- Spend bucket (uses SUM directly, not alias)
+    CASE
+        WHEN SUM(transaction_qty * unit_price) <= 50 THEN '01. Low spend'
+        WHEN SUM(transaction_qty * unit_price) BETWEEN 51 AND 100 THEN '02. Med spend'
+        ELSE '03. High spend'
+    END AS spend_bucket,
+
+-- Categorical columns
     store_location,
     product_category,
     product_detail
 
-FROM workspace.default.BrightCoffeeShop_analysis_case_study_1
-
+FROM workspace.default.brightcoffeeshop_analysis_case_study_1
 GROUP BY
     transaction_date,
     DAYNAME(transaction_date),
     MONTHNAME(transaction_date),
     DAYOFMONTH(transaction_date),
+
     CASE
         WHEN DAYNAME(transaction_date) IN ('Sunday', 'Saturday') THEN 'Weekend'
         ELSE 'Weekday'
     END,
+
     CASE
         WHEN DATE_FORMAT(transaction_time, 'HH:mm:ss') BETWEEN '00:00:00' AND '11:59:59' THEN 'Morning'
         WHEN DATE_FORMAT(transaction_time, 'HH:mm:ss') BETWEEN '12:00:00' AND '16:59:59' THEN 'Afternoon'
         WHEN DATE_FORMAT(transaction_time, 'HH:mm:ss') >= '17:00:00' THEN 'Evening'
     END,
+
+-- Categorical columns
     store_location,
     product_category,
     product_detail;
